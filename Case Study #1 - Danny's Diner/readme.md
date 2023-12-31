@@ -277,6 +277,9 @@ GROUP BY s.customer_id
 #### Join All The Things
 Create basic data tables that Danny and his team can use to quickly derive insights without needing to join the underlying tables using SQL. Fill Member column as 'N' if the purchase was made before becoming a member and 'Y' if the after is amde after joining the membership.
 
+#### Required Result set:
+![image](https://user-images.githubusercontent.com/77529445/167406964-25276db9-fe1c-4608-8b77-b0970b156888.png)
+
 ```sql
 SELECT s.customer_id,
        s.order_date,
@@ -309,13 +312,16 @@ ON s.customer_id = mb.customer_id
 | C           | 2021-01-01 | ramen        | 12    | N      |
 | C           | 2021-01-07 | ramen        | 12    | N      |
 	
-#### Result set:
-![image](https://user-images.githubusercontent.com/77529445/167406964-25276db9-fe1c-4608-8b77-b0970b156888.png)
+
 
 ***
 
 #### Rank All The Things
 Danny also requires further information about the ranking of customer products, but he purposely does not need the ranking for non-member purchases so he expects null ranking values for the records when customers are not yet part of the loyalty program.
+
+#### Required Result set:
+![image](https://user-images.githubusercontent.com/77529445/167407504-41d02dd0-0bd1-4a3c-8f41-00ae07daefad.png)
+
 
 ```sql
 WITH cte AS (
@@ -356,8 +362,6 @@ FROM cte
 | C           | 2021-01-01 | ramen        | 12    | N      | NULL
 | C           | 2021-01-07 | ramen        | 12    | N      | NULL
 
-#### Result set:
-![image](https://user-images.githubusercontent.com/77529445/167407504-41d02dd0-0bd1-4a3c-8f41-00ae07daefad.png)
 
 
 ***
