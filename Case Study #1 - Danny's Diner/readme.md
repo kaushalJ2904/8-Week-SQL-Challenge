@@ -53,3 +53,104 @@ GROUP BY customer_id;
 | A           | 4          |
 | B           | 6          |
 | C           | 2          |
+
+***
+
+**3. What was the first item from the menu purchased by each customer?**
+
+````sql
+--Approach_1
+WITH cte AS(
+	SELECT *,
+		DENSE_RANK() OVER(PARTITION BY customer_id ORDER BY order_date)	as order_chronology
+	FROM 
+	dannys_diner.sales
+)
+SELECT customer_id, 
+  product_name
+FROM cte c
+JOIN dannys_diner.menu m
+ON c.product_id = m.product_id
+WHERE order_chronology = 1
+GROUP BY customer_id, product_name;	
+
+--Approach_2 (Using sting_agg function)
+WITH cte AS (
+    SELECT *,
+           DENSE_RANK() OVER (PARTITION BY customer_id ORDER BY order_date) AS order_chronology
+    FROM dannys_diner.sales
+),cte2 AS (
+	SELECT DISTINCT c.customer_id, m.product_name, c.order_date
+	FROM cte c
+	JOIN dannys_diner.menu m ON c.product_id = m.product_id
+	WHERE c.order_chronology = 1
+)
+SELECT customer_id,
+	STRING_AGG(product_name, ',') WITHIN GROUP(ORDER BY order_date) as first_order
+FROM cte2
+GROUP BY customer_id
+````
+
+#### Answer: (Approach_1)
+| customer_id | product_name | 
+| ----------- | ----------- |
+| A           | curry        | 
+| A           | sushi        | 
+| B           | curry        | 
+| C           | ramen        |
+
+#### Answer: (Approach_2)
+| customer_id | product_name | 
+| ----------- | ----------- |
+| A           | curry,sushi | 
+| B           | curry        | 
+| C           | ramen        |
+
+***
+**4. What is the most purchased item on the menu and how many times was it purchased by all customers?**
+````sql
+SELECT TOP 1 m.product_name most_purchased_item,
+	COUNT(1) as count
+FROM dannys_diner.sales s
+JOIN dannys_diner.menu m
+ON s.product_id = m.product_id
+GROUP BY s.product_id, m.product_name
+ORDER BY COUNT(1) DESC;
+````
+#### Answer:
+| most_purchased | product_name | 
+| ----------- | ----------- |
+| 8       | ramen |
+***
+
+**5. Which item was the most popular for each customer?**
+
+````sql
+WITH cte AS (
+	SELECT s.customer_id,
+		   m.product_name,
+		   COUNT(1) as popular_fg
+	FROM dannys_diner.sales s
+	LEFT JOIN dannys_diner.menu m
+	ON s.product_id = m.product_id
+	GROUP BY customer_id, product_name
+),cte2 AS (
+	SELECT *,
+			MAX(popular_fg) OVER(PARTITION BY customer_id) as most_popular
+	FROM cte
+)
+SELECT customer_id,
+	   STRING_AGG(product_name,', ') WITHIN GROUP(ORDER BY customer_id) as most_popular
+	FROM cte2
+WHERE popular_fg = most_popular
+GROUP BY customer_id
+GO
+
+````
+
+#### Answer:
+| customer_id | product_name |
+| ----------- | ---------- |
+| A           | ramen      |  
+| B           | curry,ramen,sushi |     
+| C           | ramen     |  
