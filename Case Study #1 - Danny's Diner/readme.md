@@ -20,7 +20,7 @@ Danny wants to use the data to answer a few simple questions about his customers
 ![image](https://user-images.githubusercontent.com/81607668/127271130-dca9aedd-4ca9-4ed8-b6ec-1e1920dca4a8.png)
 
 ***
-
+## Question and Solution
 **1. What is the total amount each customer spent at the restaurant?**
 ````sql
 SELECT customer_id, 
@@ -30,7 +30,12 @@ LEFT JOIN dannys_diner.menu m
 ON s.product_id = m.product_id
 GROUP BY customer_id
 ORDER BY customer_id
-
 ````
+#### Answer:
+| customer_id | total_sales |
+| ----------- | ----------- |
+| A           | 76          |
+| B           | 74          |
+| C           | 36          |
 
-## Question and Solution
+
