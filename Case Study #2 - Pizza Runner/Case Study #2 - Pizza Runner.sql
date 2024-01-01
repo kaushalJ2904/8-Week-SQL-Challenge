@@ -206,9 +206,121 @@ GROUP BY
 	DATEPART(WEEKDAY, order_time),
     DATENAME(WEEKDAY, order_time);
 
-   
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+--B. Runner and Customer Experience 
+
+--Question_1 - How many runners signed up for each 1 week period? (i.e. week starts 2021-01-01)
+
+SELECT 
+		DATEPART(WEEK,registration_date) as week_of_registration,
+		COUNT(1) as number_of_registration
+FROM pizza_runner.runners
+GROUP BY DATEPART(WEEK,registration_date)
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+--Question_2 - What was the average time in minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order?
+
+SELECT * FROM pizza_runner.customer_orders
+SELECT * FROM pizza_runner.runner_orders
+
+SELECT 
+	r.runner_id,
+	AVG(DATEDIFF(MINUTE,c.order_time,pickup_time)) as avg_time_to_arrive
+FROM pizza_runner.customer_orders c
+LEFT JOIN pizza_runner.runner_orders r 
+ON c.order_id = r.order_id
+GROUP BY r.runner_id;
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+--Question_3 - Is there any relationship between the number of pizzas and how long the order takes to prepare?
+
+WITH cte AS (
+	SELECT 
+		c.order_id,
+		COUNT(1) as no_of_pizzas_per_order,
+		AVG(DATEDIFF(MINUTE,c.order_time,pickup_time)) as time_to_prepare
+	FROM pizza_runner.customer_orders c
+	LEFT JOIN pizza_runner.runner_orders r
+	ON c.order_id = r.order_id
+	WHERE cancellation is null
+	GROUP BY c.order_id
+)
+SELECT 
+	no_of_pizzas_per_order,
+	AVG(time_to_prepare) as time_to_prepare
+FROM cte
+GROUP BY no_of_pizzas_per_order
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+--Question_4 - What was the average distance travelled for each customer?
+
+SELECT 
+	c.customer_id,
+	ROUND(AVG(r.distance), 2) as avg_distance
+FROM 
+	pizza_runner.customer_orders c
+LEFT JOIN 
+	pizza_runner.runner_orders r
+ON 
+	c.order_id = r.order_id
+GROUP BY 
+	c.customer_id
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+--Question_5 - What was the difference between the longest and shortest delivery times for all orders?
+
+SELECT 
+		MAX(duration) as longest_delivery_time,
+		MIN(duration) as shortest_delivery_time,
+		MAX(duration) - MIn(duration) as difference
+FROM pizza_runner.runner_orders
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+--Question_6 -  What was the average speed for each runner for each delivery and do you notice any trend for these values?
+
+SELECT * FROM pizza_runner.runner_orders
+
+SELECT 
+	order_id,
+	runner_id,
+	ROUND((distance*1.0/(duration/60)), 2) as speed_in_Kmph
+FROM pizza_runner.runner_orders
+WHERE cancellation is null
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+--Question_7 - What is the successful delivery percentage for each runner?
+
+WITH cte AS (
+	SELECT *,
+			CASE WHEN cancellation is null THEN 1 END as success_fg
+	FROM pizza_runner.runner_orders
+)
+SELECT 
+	runner_id,
+	SUM(success_fg)*1.0 / COUNT(1) * 100 as successful_delivery
+FROM cte
+GROUP BY runner_id
 
 
 
